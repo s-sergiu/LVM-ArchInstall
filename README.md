@@ -5,7 +5,7 @@ After you boot the arch live environment from the USB flash drive and you're
 presented with the zsh shell prompt, the first step will be to set up an internet connection.
 
 To make sure you have your machine is booted in UEFI mode execute the follwing command:
-	ls /sys/firmware/efi/efivars
+	```ls /sys/firmware/efi/efivars```
 	If the directory doesn't exist and the above command doesn't print anything your system is not booted in UEFI mode (refer to BIOS mode installation -- link to be added --);			
 
 If you are on a wired connection you should plug the cable into your device and have an internet 
