@@ -4,77 +4,85 @@
 After you boot the arch live environment from the USB flash drive and you're 
 presented with the zsh shell prompt, the first step will be to set up an internet connection.
 
-To make sure you have your machine is booted in UEFI mode execute the follwing command:
-	```ls /sys/firmware/efi/efivars```
-	If the directory doesn't exist and the above command doesn't print anything your system is not booted in UEFI mode (refer to BIOS mode installation -- link to be added --);			
+To make sure you have your machine is booted in UEFI mode execute the follwing command:\
+```ls /sys/firmware/efi/efivars``` \
+If the directory doesn't exist and the above command doesn't print anything your system is not booted in UEFI mode (refer to BIOS mode installation -- link to be added --);			
 
 If you are on a wired connection you should plug the cable into your device and have an internet 
 connection.
 Otherwise if you're on a wireless connection: 
-	Start by typing the command: iwctl (you will be presented with an [iwd]# prompt);
-	Find out your wireless device name by typing: station list;
-	Scan for networks by typing: station <device name> scan;
-	List all networks found: station <device name> get-networks;
-	And finally connect to your desired network: station <device name> connect <network name>;
-	You should be prompted for a password. After you're done just type exit to leave iwd;
+- Start by typing the command: ```iwctl``` (you will be presented with an ```[iwd]#``` prompt);
+- Find out your wireless device name by typing: ```station list```;
+- Scan for networks by typing: ```station <device name> scan```;
+- List all networks found: ```station <device name> get-networks```;
+- And finally connect to your desired network: ```station <device name> connect <network name>```;
+- You should be prompted for a password. After you're done just type exit to leave iwd;
 
 Setting up the system clock:
-	timedatectl set-ntp true;
-	timedatectl set-timezone Europe/Berlin (change it depending on your location);
-	timedatectl status (check that everything looks ok);
+- ```timedatectl set-ntp true```
+- ```timedatectl set-timezone Europe/Berlin```
+(change it depending on your location);
+- ```timedatectl status```
+(check that everything looks ok);
 
 Before we go on to partitioning the disk, we can reset the disk partition table, remove 
 all filsystem signatures from the partitions, remove LVM - logical volumes, volume groups 
 and physical volumes (if we have LVM) and decrypt the volume (if it's encrypted) 
 so that we can format it afterwards to have a clean disk for our fresh Archlinux install.
-
 # Section for resetting the disks for a fresh install.
-	1.First we need to open the encrypted volume if you have encryption enabled, if not just skip this step.
-		cryptsetup open --type luks /dev/sda2 <volume name>
-	2.Then we need to remove all logical volumes 
-		list them with lvs;
-		remove volumes with lvremove /dev/mapper/<volume name>
-	3.Remove the logical volume group: vgremove /dev/mapper/<volume name>
-	4.Finally remove the physical volume: pvremove dev/mapper/<volume name>
-	5.Close the encrypted volume (skip if you don't use encryption).
-		cryptsetup close /dev/mapper/<volume name>;
-	6.Format the disk with ext4 extension: mkfs.ext4 /dev/sda
-	7.Wipe all filesystem signatures so you have an empty blank disk: wipefs --all /dev/sda;
+1. First we need to open the encrypted volume if you have encryption enabled, if not just skip this step. \
+	```cryptsetup open --type luks /dev/sda2 <volume name>```
+2. Then we need to remove all logical volumes \
+	list them with ```lvs```; \
+	remove volumes with ```lvremove /dev/mapper/<volume name>```
+3. Remove the logical volume group: \
+	```vgremove /dev/mapper/<volume name>```
+4. Finally remove the physical volume: \
+	```pvremove dev/mapper/<volume name>```
+5. Close the encrypted volume (skip if you don't use encryption). \
+	```cryptsetup close /dev/mapper/<volume name>```;
+6. Format the disk with ext4 extension: \
+	```mkfs.ext4 /dev/sda```
+7. Wipe all filesystem signatures so you have an empty blank disk: \
+	```wipefs --all /dev/sda```;
 
-Now we begin partitioning the disk:
-	We are going to use fdisk to make partitions: fdisk /dev/sda;
-		## Section for partitioning the disk with fdisk;
-After partitioning is complete we format the EFI boot partition with mkfs.vfat /dev/ <device name> 
-or mkfs.fat -F32 /dev/<device name>;
-Then we begin by encrypting the disk with the following command: 
-	cryptsetup luksFormat <device>
-Open the encrypted partition so we can start to create the LVM group and logical volumes:
-	cryptsetup open --type luks <device> <name of volume>
+## Now we begin partitioning the disk: 
+We are going to use fdisk to make partitions: ```fdisk /dev/sda```;
+### Section for partitioning the disk with fdisk;
 
-Now we begin creating an LVM partition layout, first by creating the physical volume:
-	pvcreate <device> "/dev/mapper/name"
-We create the volume group:
-	vgcreate "volume name" /dev/mapper/name;
-And finally create the logical volume groups:
-	lvcreate -L <4096MiB> volume_name -n swap;
-	lvcreate -L <40G> volume_name -n root;
-	lvcreate -L <40G> volume_name -n home;
-	lvcreate -L <8G> volume_name -n var;
-	lvcreate -L <3G> volume_name -n tmp;
+After partitioning is complete we format the EFI boot partition with \
+```mkfs.vfat /dev/ <device name> ``` or ```mkfs.fat -F32 /dev/<device name>```; \
 
-After we created our LVM layout we can start formatting them and mounting + activating the swap.
-	mkfs.ext4 /dev/mapper/volume_name-root;
-	mkfs.ext4 /dev/mapper/volume_name-home;
-	mkfs.ext4 /dev/mapper/volume_name-var;
-	mkfs.ext4 /dev/mapper/volume_name-tmp;
-	mkswap /dev/mapper/volume_name-swap;
+Then we begin by encrypting the disk with the following command: \ 
+```cryptsetup luksFormat <device>``` \
 
-	mount /dev/mapper/volume_name-root /mnt;
-	mount -m /dev/mapper/volume_name-home /mnt/home;
-	mount -m /dev/mapper/volume_name-var /mnt/var;
-	mount -m /dev/mapper/volume_name-tmp /mnt/tmp;
-	mount -m /dev/sda1 /mnt/boot;
-	swapon /dev/mapper/volume_name-swap;
+Open the encrypted partition so we can start to create the LVM group and logical volumes: \
+```cryptsetup open --type luks <device> <name of volume>``` \
+
+Now we begin creating an LVM partition layout, first by creating the physical volume: \
+```pvcreate <device> "/dev/mapper/name"``` \
+We create the volume group: \
+```vgcreate "volume name" /dev/mapper/name```; \
+And finally create the logical volume groups: \
+```lvcreate -L <4096MiB> volume_name -n swap```; \
+```lvcreate -L <40G> volume_name -n root```; \
+```lvcreate -L <40G> volume_name -n home```; \
+```lvcreate -L <8G> volume_name -n var```; \
+```lvcreate -L <3G> volume_name -n tmp```; 
+
+After we created our LVM layout we can start formatting them and mounting + activating the swap. \
+```mkfs.ext4 /dev/mapper/volume_name-root```; \
+```mkfs.ext4 /dev/mapper/volume_name-home```; \
+```mkfs.ext4 /dev/mapper/volume_name-var```;  \
+```mkfs.ext4 /dev/mapper/volume_name-tmp```; \
+```mkswap /dev/mapper/volume_name-swap```; 
+
+```mount /dev/mapper/volume_name-root /mnt```; \
+```mount -m /dev/mapper/volume_name-home /mnt/home```; \
+```mount -m /dev/mapper/volume_name-var /mnt/var```; \
+```mount -m /dev/mapper/volume_name-tmp /mnt/tmp```; \
+```mount -m /dev/sda1 /mnt/boot```; \
+```swapon /dev/mapper/volume_name-swap```; 
 
 Before we can install the base filesystem we need to make sure we update the pacman mirrors based on our location.
 No we can begin installing the base filesystem and the linux kernel:
