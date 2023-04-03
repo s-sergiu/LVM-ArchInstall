@@ -6,9 +6,11 @@ First step will be to install git and ssh;
 ## Configuring your SSH key:
 
 Now we can generate a new ssh key with the following command:
-- ```ssh-keygen -t ed22519 -c "your@email"
+- ```ssh-keygen -t ed22519 -c "your@email"```
+
 After this is generated inside the ```~/.ssh``` folder we need to copy paste the contents of ```~/.ssh/id_ed25519.pub``` and paste it on Github.
 - ```cat ~/.ssh/id_ed25519.pub```;
+
 Finally you can test your SSH connection with the command: 
 - ```ssh -T git@github.com```;
 
