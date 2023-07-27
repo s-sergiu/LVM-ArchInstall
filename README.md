@@ -157,7 +157,7 @@ Last step into configuring our network we need to create a wireless config profi
 Open ```/etc/systemd/network/25-wireless.network``` and add the following:
 ```
 	[Match]
-	name=<name of your wlan device>
+	Name=<name of your wlan device>
 	[Network]
 	DHCP=yes
 ```
